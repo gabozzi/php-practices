@@ -24,10 +24,6 @@ if (isset($_GET['name'], $_GET['price'], $_GET['image'], $_GET['size'], $_GET['q
     } else {
         $_SESSION['cart'] = [$cart_item];
     }
-
-    // Optionally, redirect to cart.php or another page
-    header("Location: cart.php");
-    exit();
 }
 ?>
 

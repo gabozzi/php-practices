@@ -43,6 +43,30 @@ if (isset($_GET['name'], $_GET['price'], $_GET['image'], $_GET['size'], $_GET['q
     }
 }
 
+// Handle the cart update when the form is submitted
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['quantity'])) {
+    foreach ($_POST['quantity'] as $itemName => $newQuantity) {
+        // Ensure the quantity is a valid number and greater than 0
+        $newQuantity = intval($newQuantity);
+
+        if ($newQuantity > 0) {
+            // Find the item in the cart and update its quantity
+            foreach ($_SESSION['cart'] as $index => $item) {
+                if ($item['name'] == $itemName) {
+                    $_SESSION['cart'][$index]['quantity'] = $newQuantity;
+                    // Optionally, update the total price based on the new quantity
+                    $_SESSION['cart'][$index]['total'] = $item['price'] * $newQuantity;
+                    break;
+                }
+            }
+        }
+    }
+
+    // After updating, redirect to refresh the cart page
+    header("Location: cart.php");
+    exit();
+}
+
 // Handle removing items from the cart
 if (isset($_GET['remove'])) {
     $remove_index = $_GET['remove'];
@@ -59,6 +83,7 @@ if (isset($_GET['remove'])) {
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -67,11 +92,14 @@ if (isset($_GET['remove'])) {
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <!-- FontAwesome for trash icon -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
     <style>
     .header-icon {
         font-size: 40px;
         margin-right: 10px;
     }
+
 
     .cart-table img {
         width: 80px;
@@ -92,6 +120,7 @@ if (isset($_GET['remove'])) {
     }
     </style>
 </head>
+
 <body>
 
     <!-- Header -->
@@ -118,55 +147,65 @@ if (isset($_GET['remove'])) {
 
     <hr>
 
-    <!-- Cart Table -->
     <div class="container mt-5">
 
         <?php if (isset($_SESSION['cart']) && count($_SESSION['cart']) > 0): ?>
-        <table class="table table-bordered">
-            <thead>
-                <tr>
-                    <th>Image</th>
-                    <th>Product</th>
-                    <th>Size</th>
-                    <th>Quantity</th>
-                    <th>Price</th>
-                    <th>Total</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($_SESSION['cart'] as $index => $item): ?>
-                <tr>
-                    <td><img src="<?= $item['image']; ?>" width="50" alt="<?= $item['name']; ?>"></td>
-                    <td><?= $item['name']; ?></td>
-                    <td><?= $item['size']; ?></td>
-                    <td><?= $item['quantity']; ?></td>
-                    <td>$<?= number_format($item['price'], 2); ?></td>
-                    <td>$<?= number_format($item['total'], 2); ?></td>
-                    <td>
-                        <a href="cart.php?remove=<?= $index; ?>" class="btn btn-danger btn-sm">
-                            <i class="fas fa-trash-alt"></i> Remove
-                        </a>
-                    </td>
-                </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
-        <a href="checkout.php" class="btn btn-primary">Proceed to Checkout</a>
+        <form action="cart.php" method="POST">
+            <!-- Move the form tag here to wrap the whole table -->
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Image</th>
+                        <th>Product</th>
+                        <th>Size</th>
+                        <th>Quantity</th>
+                        <th>Price</th>
+                        <th>Total</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($_SESSION['cart'] as $index => $item): ?>
+                    <tr>
+                        <td><img src="<?= $item['image']; ?>" width="50" alt="<?= $item['name']; ?>"></td>
+                        <td><?= $item['name']; ?></td>
+                        <td><?= $item['size']; ?></td>
+                        <td>
+                            <input type="number" name="quantity[<?= $item['name']; ?>]" value="<?= $item['quantity']; ?>"
+                                class="form-control" min="1">
+                        </td>
+                        <td>$<?= number_format($item['price'], 2); ?></td>
+                        <td>$<?= number_format($item['total'], 2); ?></td>
+                        <td>
+                            <a href="cart.php?remove=<?= $index; ?>" class="btn btn-danger btn-sm">
+                                <i class="fas fa-trash-alt"></i> Remove
+                            </a>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+
+                <tfoot>
+                    <tr>
+                        <td colspan="6" class="text-right">
+                            <div class="d-flex justify-content-between mt-4">
+                                <a href="index.php" class="btn btn-secondary">Continue Shopping</a>
+                                <button type="submit" name="update_cart" class="btn btn-success">Update Cart</button>
+                                <a href="checkout.php" class="btn btn-primary">Checkout</a>
+                                <!-- Fixed the link to 'checkout.php' -->
+                            </div>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </form>
+
         <?php else: ?>
         <p>Your cart is empty.</p>
         <?php endif; ?>
 
-        <!-- Buttons for Checkout or Continue Shopping -->
-        <div class="d-flex justify-content-between mt-4">
-            <a href="index.php" class="btn btn-secondary">Continue Shopping</a>
-            <a href="cart.php" class="btn btn-success">Proceed to Checkout</a>
-            <!-- Clear Cart Button -->
-            <form method="POST">
-                <button type="submit" name="clear_cart" class="btn btn-danger mt-3">Clear Cart</button>
-            </form>
-        </div>
     </div>
+
 
     <!-- Bootstrap JS and FontAwesome -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
@@ -175,4 +214,5 @@ if (isset($_GET['remove'])) {
     <script src="https://kit.fontawesome.com/a076d05399.js"></script>
 
 </body>
+
 </html>

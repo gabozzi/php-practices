@@ -165,7 +165,7 @@ if (isset($_GET['name']) && isset($_GET['price']) && isset($_GET['image'])) {
             <!-- Confirm and Cancel Buttons -->
             <div class="btn-container mt-3">
 
-                <a href="confirm.php?name=<?= urlencode($product_name); ?>&price=<?= $product_price; ?>&image=<?= urlencode($product_image); ?>&size=<?= urlencode($product_size); ?>&quantity=<?= $product_quantity; ?>"
+                <a href="confirm.php? name=<?= urlencode($product_name); ?>&price=<?= $product_price; ?>&image=<?= urlencode($product_image); ?>&size=<?= urlencode($product_size); ?>&quantity=<?= $product_quantity; ?>"
                     class="btn btn-success" id="confirm-btn">Confirm Product Purchase</a>
 
                 <a href="index.php" class="btn btn-danger">Cancel / Go Back</a>
